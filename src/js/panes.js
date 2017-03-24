@@ -1,3 +1,4 @@
+import plugin from './plugin.js';
 /*
  * Window pane that slides left/right not to be confused 
  * with a panel which also slides left and right but functions differently.
@@ -7,10 +8,18 @@
  */
 class Panes {
 	constructor($el) {
-		if(!$el.length) macp.console('something went wrong initializing a panes object');
+		if(!$el.length) console.log('something went wrong initializing a panes object. Ensure the element exists.');
 		this.$panes = $el;
 		this.bindComplete = false;
+		this.windowHeight = $(window).height();
+        this.windowWidth = $(window).width();
+		this.init();
 	}
+
+	isMobile() {
+        return this.windowWidth < this.screenSm;
+    }
+
 	init() {
 		var _this = this;
 		this.paneContentWidth = 0;
@@ -22,12 +31,11 @@ class Panes {
 		this.startingIndex = $firstPane.data('index');
 		this.panesCount = this.$allPanes.length;
 		this.orientation = this.$panes.data('orientation');
-		this.cols = macp.utilities.isMobile() ? this.$panes.data('cols-mobile') : this.$panes.data('cols-desktop');
-		// this.paneWidth = $('.container').outerWidth() / this.cols;
-		this.paneWidth = ($(window).width() / this.cols);
+		this.cols = this.isMobile() ? this.$panes.data('cols-mobile') : this.$panes.data('cols-desktop');
+		this.paneWidth = $firstPane.outerWidth();
 		this.$allPanes.css({ width: this.paneWidth });
 		this.paneContentWidth = $firstPane.outerWidth() * 2;
-		this.paneHeight = macp.utilities.isMobile() ? $firstPane.outerHeight(true) * 2 : $firstPane.outerHeight(true);
+		this.paneHeight = this.isMobile() ? $firstPane.outerHeight(true) * 2 : $firstPane.outerHeight(true);
 		this.panesTrack = this.$panes.find('.panes-track');
 		this.startPoint = this.startingIndex * this.paneWidth;
 
@@ -40,7 +48,7 @@ class Panes {
 				$(this).css({width: _this.paneContentWidth, left: -_this.paneContentWidth, height: _this.paneHeight});
 				if(_this.orientation == 'square') {
 					var top = 0;
-					if (macp.utilities.isMobile()) {
+					if (_this.isMobile()) {
 						top = i <= 2 ? 0 : _this.paneHeight / 2;
 					} else {
 						top = (Math.ceil(index / 3) - 1) * _this.paneHeight;
@@ -75,7 +83,7 @@ class Panes {
 
 		if(this.orientation == 'vertical') {
 			this.bind();
-			if(macp.utilities.isMobile()) {
+			if(this.isMobile()) {
 				this.addAccordionEvents();
 			} else {
 				this.removeAccordionEvents();
@@ -87,12 +95,12 @@ class Panes {
 			}, 100);
 		}
 		
-		macp.console('panes initialized...');
+		if(this.debug) console.log('panes initialized...');
 	}
 
 	doToggle(index) {
-		macp.console('logged pane go click.');
-		if(typeof index !== 'number') return macp.console('could not find pane with index: ' + index);
+		if(this.debug) console.log('logged pane go click.');
+		if(typeof index !== 'number') return console.log('could not find pane with index: ' + index);
 		if(this.orientation == 'vertical') this.toggleVerticalPane(index)
 		else this.toggleSquarePane(index);
 	}
@@ -125,33 +133,33 @@ class Panes {
 
 		this.$panes.on('click', '.close', function() {
 			var index = $(this).data('index');
-			macp.console('clicked pane close');
+			if(this.debug) console.log('clicked pane close');
 			_this.toggleVerticalPane(index);
 
 		});
 
 		this.$panes.on('click', '.next', function() {
 			var index = $(this).data('index');
-			macp.console('number of panes is: ' + _this.panesCount);
-			macp.console('clicked pane previous');
+			if(this.debug) console.log('number of panes is: ' + _this.panesCount);
+			if(this.debug) console.log('clicked pane previous');
 			if(index < _this.panesCount) {
-				macp.console('closing pane before callback.');
+				if(this.debug) console.log('closing pane before callback.');
 				_this.toggleVerticalPane(index, function() {
-					macp.console('callback to go to next pane');
+					if(this.debug) console.log('callback to go to next pane');
 					_this.toggleVerticalPane(index + 1);
 				});
 			} else {
-				console.log('no next pane was found');
+				if(this.debug) console.log('no next pane was found');
 			}
 		});
 
 		this.$panes.on('click', '.prev', function() {
 			var index = $(this).data('index');
-			macp.console('clicked pane previous');
+			if(this.debug) console.log('clicked pane previous');
 			if(index > _this.startingIndex) {
-				macp.console('closing pane before callback.');
+				if(this.debug) console.log('closing pane before callback.');
 				_this.toggleVerticalPane(index, function() {
-					macp.console('callback to go to next pane');
+					if(this.debug) console.log('callback to go to next pane');
 					_this.toggleVerticalPane(index - 1);
 				});
 			} else {
@@ -165,7 +173,7 @@ class Panes {
 			if(-_this.currentPageIndex > _this.startingIndex) {
 				_this.slidePanesRight();
 			} else {
-				macp.console('cannot go back. reached min of: ' + _this.currentPageIndex);
+				if(this.debug) console.log('cannot go back. reached min of: ', _this.currentPageIndex);
 			}
 		});
 
@@ -174,7 +182,7 @@ class Panes {
 			if(-_this.currentPageIndex + 3 < _this.panesCount + _this.startingIndex) {
 				_this.slidePanesLeft();
 			} else {
-				macp.console('cannot go forward. reached max of: ' + _this.currentPageIndex);
+				if(this.debug) console.log('cannot go forward. reached max of: ', _this.currentPageIndex);
 			}
 		});
 
@@ -237,7 +245,7 @@ class Panes {
 
 
 		if($pane.length) {
-			macp.console('found a vertical pane. toggling it.');
+			if(this.debug) console.log('found a vertical pane. toggling it.');
 			this.$currentPane = $pane;
 
 			if($pane.hasClass('open')) {
@@ -257,7 +265,7 @@ class Panes {
 				if (callback) callback();
 			}
 		} else {
-			macp.console('not a valid vertical pane object with target index = ' + index);
+			if(this.debug) console.log('not a valid vertical pane object with target index = ' + index);
 		}
 	}
 
@@ -291,12 +299,12 @@ class Panes {
 		// so if the first pane, then place the pane content over the first two panes or (slidePosition = 0),
 		// otherwise make the slidePostion equal to the width of one pane so it covers the last two panes.
 		var slidePosition = index % 3 == 1 ? 0 : this.paneWidth;
-		if(macp.utilities.isMobile()) {
+		if(this.isMobile()) {
 			slidePosition = 0;
 		}
 
 		if($paneContent.length && $pane.length) {
-			macp.console('found a square pane. toggling it.');
+			if(this.debug) console.log('found a square pane. toggling it.');
 			// user is clicking on currently open pane. so basically we reset.
 			if (this.currentPaneIndex == index) {
 				TweenLite.to($paneContent, 1, {left: -this.paneContentWidth, ease:Quad.easeOut, onComplete: function() {
@@ -333,7 +341,7 @@ class Panes {
 				}
 			}
 		} else {
-			macp.console('not a valid pane or pane content object with target index = ' + index + '. Perhaps, there is no panel-content associated with this panel?');
+			if(this.debug) console.log('not a valid pane or pane content object with target index = ' + index + '. Perhaps, there is no panel-content associated with this panel?');
 		}
 
 	}

@@ -1,0 +1,19 @@
+@mixin arrow($height, $width, $borderWidth, $color, $position) {
+    content: "";
+    position: absolute;
+    border-right: $borderWidth solid $color;
+    border-bottom: $borderWidth solid $color;
+    height: $height;
+    width: $width;
+    margin: 5px 0 0 $gutter;
+
+    @if $position == right {
+        @include rotate(-45deg);
+    } @else if $position == down {
+        @include rotate(45deg);
+    } @else if $position == up {
+        @include rotate(225deg);
+    } @else {
+        @include rotate(135deg); // left
+    }
+}

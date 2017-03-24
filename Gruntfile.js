@@ -62,6 +62,12 @@ module.exports = function(grunt) {
             src: 'src/html/*',
             dest: 'build/',
           },
+          images: {
+            expand: true,
+            flatten: true,
+            src: 'src/images/*',
+            dest: 'build/images/',
+          }
         },
         clean: ['build'],
         browserSync: {
@@ -83,7 +89,7 @@ module.exports = function(grunt) {
             options: {
                 livereload: true
             },
-            files: ['src/html/*', 'src/images/*', 'src/scss/**/*.scss', 'src/js/*.js', '!build/css/main.css', '!build/css/style.min.css', '!build/css/main.css.map'],
+            files: ['src/html/*', 'src/images/*', 'src/scss/**/*.scss', 'src/js/**/*.js', '!build/css/main.css', '!build/css/style.min.css', '!build/css/main.css.map'],
             tasks: ['copy', 'sass', 'postcss', 'cssmin', 'browserify', 'concat', 'alldone']
         }
     });

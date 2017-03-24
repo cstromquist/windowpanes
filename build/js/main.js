@@ -1,15 +1,27 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+require('./panes.js');
+
+$(document).ready(function () {
+	$(window).load(function () {
+		$('.panes').panes();
+	});
+});
+
+},{"./panes.js":2}],2:[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _pluginJs = require('./plugin.js');
 
 var _pluginJs2 = _interopRequireDefault(_pluginJs);
 
-require('./panes.js');
-
-},{"./panes.js":2,"./plugin.js":3}],2:[function(require,module,exports){
 /*
  * Window pane that slides left/right not to be confused 
  * with a panel which also slides left and right but functions differently.
@@ -17,22 +29,25 @@ require('./panes.js');
  * You can have as many panes as you want as long as they're in a 3 column structure.
  * It won't work for any other x-col layout.
  */
-'use strict';
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var Panes = (function () {
 	function Panes($el) {
 		_classCallCheck(this, Panes);
 
-		if (!$el.length) macp.console('something went wrong initializing a panes object');
+		if (!$el.length) console.log('something went wrong initializing a panes object. Ensure the element exists.');
 		this.$panes = $el;
 		this.bindComplete = false;
+		this.windowHeight = $(window).height();
+		this.windowWidth = $(window).width();
+		this.init();
 	}
 
 	_createClass(Panes, [{
+		key: 'isMobile',
+		value: function isMobile() {
+			return this.windowWidth < this.screenSm;
+		}
+	}, {
 		key: 'init',
 		value: function init() {
 			var _this = this;
@@ -45,12 +60,11 @@ var Panes = (function () {
 			this.startingIndex = $firstPane.data('index');
 			this.panesCount = this.$allPanes.length;
 			this.orientation = this.$panes.data('orientation');
-			this.cols = macp.utilities.isMobile() ? this.$panes.data('cols-mobile') : this.$panes.data('cols-desktop');
-			// this.paneWidth = $('.container').outerWidth() / this.cols;
-			this.paneWidth = $(window).width() / this.cols;
+			this.cols = this.isMobile() ? this.$panes.data('cols-mobile') : this.$panes.data('cols-desktop');
+			this.paneWidth = $firstPane.outerWidth();
 			this.$allPanes.css({ width: this.paneWidth });
 			this.paneContentWidth = $firstPane.outerWidth() * 2;
-			this.paneHeight = macp.utilities.isMobile() ? $firstPane.outerHeight(true) * 2 : $firstPane.outerHeight(true);
+			this.paneHeight = this.isMobile() ? $firstPane.outerHeight(true) * 2 : $firstPane.outerHeight(true);
 			this.panesTrack = this.$panes.find('.panes-track');
 			this.startPoint = this.startingIndex * this.paneWidth;
 
@@ -63,7 +77,7 @@ var Panes = (function () {
 					$(this).css({ width: _this.paneContentWidth, left: -_this.paneContentWidth, height: _this.paneHeight });
 					if (_this.orientation == 'square') {
 						var top = 0;
-						if (macp.utilities.isMobile()) {
+						if (_this.isMobile()) {
 							top = i <= 2 ? 0 : _this.paneHeight / 2;
 						} else {
 							top = (Math.ceil(index / 3) - 1) * _this.paneHeight;
@@ -97,7 +111,7 @@ var Panes = (function () {
 
 			if (this.orientation == 'vertical') {
 				this.bind();
-				if (macp.utilities.isMobile()) {
+				if (this.isMobile()) {
 					this.addAccordionEvents();
 				} else {
 					this.removeAccordionEvents();
@@ -109,13 +123,13 @@ var Panes = (function () {
 				}, 100);
 			}
 
-			macp.console('panes initialized...');
+			if (this.debug) console.log('panes initialized...');
 		}
 	}, {
 		key: 'doToggle',
 		value: function doToggle(index) {
-			macp.console('logged pane go click.');
-			if (typeof index !== 'number') return macp.console('could not find pane with index: ' + index);
+			if (this.debug) console.log('logged pane go click.');
+			if (typeof index !== 'number') return console.log('could not find pane with index: ' + index);
 			if (this.orientation == 'vertical') this.toggleVerticalPane(index);else this.toggleSquarePane(index);
 		}
 	}, {
@@ -148,32 +162,32 @@ var Panes = (function () {
 
 			this.$panes.on('click', '.close', function () {
 				var index = $(this).data('index');
-				macp.console('clicked pane close');
+				if (this.debug) console.log('clicked pane close');
 				_this.toggleVerticalPane(index);
 			});
 
 			this.$panes.on('click', '.next', function () {
 				var index = $(this).data('index');
-				macp.console('number of panes is: ' + _this.panesCount);
-				macp.console('clicked pane previous');
+				if (this.debug) console.log('number of panes is: ' + _this.panesCount);
+				if (this.debug) console.log('clicked pane previous');
 				if (index < _this.panesCount) {
-					macp.console('closing pane before callback.');
+					if (this.debug) console.log('closing pane before callback.');
 					_this.toggleVerticalPane(index, function () {
-						macp.console('callback to go to next pane');
+						if (this.debug) console.log('callback to go to next pane');
 						_this.toggleVerticalPane(index + 1);
 					});
 				} else {
-					console.log('no next pane was found');
+					if (this.debug) console.log('no next pane was found');
 				}
 			});
 
 			this.$panes.on('click', '.prev', function () {
 				var index = $(this).data('index');
-				macp.console('clicked pane previous');
+				if (this.debug) console.log('clicked pane previous');
 				if (index > _this.startingIndex) {
-					macp.console('closing pane before callback.');
+					if (this.debug) console.log('closing pane before callback.');
 					_this.toggleVerticalPane(index, function () {
-						macp.console('callback to go to next pane');
+						if (this.debug) console.log('callback to go to next pane');
 						_this.toggleVerticalPane(index - 1);
 					});
 				} else {
@@ -187,7 +201,7 @@ var Panes = (function () {
 				if (-_this.currentPageIndex > _this.startingIndex) {
 					_this.slidePanesRight();
 				} else {
-					macp.console('cannot go back. reached min of: ' + _this.currentPageIndex);
+					if (this.debug) console.log('cannot go back. reached min of: ', _this.currentPageIndex);
 				}
 			});
 
@@ -196,7 +210,7 @@ var Panes = (function () {
 				if (-_this.currentPageIndex + 3 < _this.panesCount + _this.startingIndex) {
 					_this.slidePanesLeft();
 				} else {
-					macp.console('cannot go forward. reached max of: ' + _this.currentPageIndex);
+					if (this.debug) console.log('cannot go forward. reached max of: ', _this.currentPageIndex);
 				}
 			});
 
@@ -264,7 +278,7 @@ var Panes = (function () {
 				} });
 
 			if ($pane.length) {
-				macp.console('found a vertical pane. toggling it.');
+				if (this.debug) console.log('found a vertical pane. toggling it.');
 				this.$currentPane = $pane;
 
 				if ($pane.hasClass('open')) {
@@ -284,7 +298,7 @@ var Panes = (function () {
 					if (callback) callback();
 				}
 			} else {
-				macp.console('not a valid vertical pane object with target index = ' + index);
+				if (this.debug) console.log('not a valid vertical pane object with target index = ' + index);
 			}
 		}
 
@@ -324,12 +338,12 @@ var Panes = (function () {
 			// so if the first pane, then place the pane content over the first two panes or (slidePosition = 0),
 			// otherwise make the slidePostion equal to the width of one pane so it covers the last two panes.
 			var slidePosition = index % 3 == 1 ? 0 : this.paneWidth;
-			if (macp.utilities.isMobile()) {
+			if (this.isMobile()) {
 				slidePosition = 0;
 			}
 
 			if ($paneContent.length && $pane.length) {
-				macp.console('found a square pane. toggling it.');
+				if (this.debug) console.log('found a square pane. toggling it.');
 				// user is clicking on currently open pane. so basically we reset.
 				if (this.currentPaneIndex == index) {
 					TweenLite.to($paneContent, 1, { left: -this.paneContentWidth, ease: Quad.easeOut, onComplete: function onComplete() {
@@ -366,7 +380,7 @@ var Panes = (function () {
 					}
 				}
 			} else {
-				macp.console('not a valid pane or pane content object with target index = ' + index + '. Perhaps, there is no panel-content associated with this panel?');
+				if (this.debug) console.log('not a valid pane or pane content object with target index = ' + index + '. Perhaps, there is no panel-content associated with this panel?');
 			}
 		}
 	}]);
@@ -374,11 +388,11 @@ var Panes = (function () {
 	return Panes;
 })();
 
-plugin(Panes, {
+(0, _pluginJs2['default'])(Panes, {
 	namespace: 'panes'
 });
 
-},{}],3:[function(require,module,exports){
+},{"./plugin.js":3}],3:[function(require,module,exports){
 
 /*
  *
