@@ -8,7 +8,7 @@ module.exports = function(grunt) {
                     loadPath: 'node_modules/bootstrap-sass/assets/stylesheets'
                 },
 				files: {
-					'build/css/style.css' : 'src/scss/main.scss'
+					'build/css/main.css' : 'src/scss/main.scss'
 				}
 			}
 		},
@@ -22,12 +22,12 @@ module.exports = function(grunt) {
                 ]
             },
             dist: {
-                src: 'build/css/style.css'
+                src: 'build/css/main.css'
             }
         },
         cssmin: {
             css: {
-                src: 'build/css/style.css',
+                src: 'build/css/main.css',
                 dest: 'build/css/style.min.css'
             }
         },
@@ -55,22 +55,35 @@ module.exports = function(grunt) {
                 }
             }
         },
+        copy: {
+          html: {
+            expand: true,
+            flatten: true,
+            src: 'src/html/*',
+            dest: 'build/',
+          },
+        },
+        clean: ['build'],
         browserSync: {
             dev: {
                 bsFiles: {
                     src : [
-                        'build/css/style.css',
-                    ],
+                        'src/scss/*.scss',
+                        'src/html/*.html'
+                    ]
+                },
+                options: {
+                    watchTask: true,
+                    server: './build'
                 }
             }
         },
         watch: {
             options: {
-                livereload: true,
+                livereload: true
             },
-
-            files: ['src/images/*', 'src/scss/**/*.scss', 'src/js/**/*.js', '!build/css/style.css', '!build/css/style.min.css', '!build/css/style.css.map'],
-            tasks: ['sass', 'postcss', 'cssmin', 'browserify', 'concat', 'alldone']
+            files: ['src/html/*', 'src/images/*', 'src/scss/**/*.scss', 'src/js/*.js', '!build/css/main.css', '!build/css/style.min.css', '!build/css/main.css.map'],
+            tasks: ['copy', 'sass', 'postcss', 'cssmin', 'browserify', 'concat', 'alldone']
         }
     });
 
@@ -84,9 +97,11 @@ module.exports = function(grunt) {
   	grunt.loadNpmTasks('grunt-contrib-uglify');
   	grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-browser-sync');
     grunt.loadNpmTasks('grunt-postcss');
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-imagemin');
-	grunt.registerTask('default',['sass', 'postcss', 'browserify', 'concat', 'alldone', 'browserSync', 'watch']); // DEV TASKS WHICH ARE QUICKER
+	grunt.registerTask('default',['clean', 'copy', 'sass', 'postcss', 'browserify', 'concat', 'browserSync', 'watch', 'alldone']);
 }
